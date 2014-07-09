@@ -15,7 +15,74 @@ function initialiseTable ()
 function refreshTable ()
 {
 	// Analyse gaps
+	var gapIndexes = [];
+	for (var key in lastTimingData.driverInfo)
+	{
+		var driver = lastTimingData.driverInfo[key];
 
+		gapIndexes.push({driverNumber : driver.number, behind : driver.behind, gap : driver.gap});
+	}
+	gapIndexes.sort(function compare(left, right)
+	{
+		if (left.behind !== undefined && left.behind.length > 0)
+		{
+			if (right.behind !== undefined && right.behind.length > 0)
+			{
+				var leftVal = null;
+				var rightVal = null;
+				if (left.behind.substr(left.behind.length - 1) == "L")
+				{
+					leftVal = parseFloat(left.behind.substr(0, left.behind.length - 1)) * 1000.0;
+				}
+				else
+				{
+					leftVal = parseFloat(left.behind);
+				}
+				if (right.behind.substr(right.behind.length - 1) == "L")
+				{
+					rightVal = parseFloat(right.behind.substr(0, right.behind.length - 1)) * 1000.0;
+				}
+				else
+				{
+					rightVal = parseFloat(right.behind);
+				}
+				return leftVal - rightVal;
+			}
+			else
+			{
+				return -1;
+			}
+		}
+		else
+		{
+			return 1;
+		}
+	});
+
+	var battleOffset = 0;
+	var inBattle = false;
+	for (var i = 0; i < gapIndexes.length; i++)
+	{
+		var checkVal = parseFloat(gapIndexes[i].gap);
+		if (gapIndexes[i].gap.length > 0 && checkVal < 2.0)
+		{
+			if (i > 0)
+			{
+				lastTimingData.driverInfo[gapIndexes[i - 1].driverNumber].battle = battleOffset;
+			}
+			lastTimingData.driverInfo[gapIndexes[i].driverNumber].battle = battleOffset;
+			inBattle = true;
+		}
+		else
+		{
+			if (inBattle)
+			{
+				battleOffset++;
+			}
+			inBattle = false;
+			lastTimingData.driverInfo[gapIndexes[i].driverNumber].battle = null;
+		}
+	}
 
 	// Sort into "fastest last lap" order.
 	var indexes = [];
@@ -69,12 +136,22 @@ function refreshTable ()
 			backcolor = "style='background-color: #600'";
 		}
 
-		var newLine = "<tr " + backcolor + "><td>" + driver.number + "</td><td>" + driver.name + "</td><td>" + driver.racePosition + "</td><td>" +
+		var battleColours = [ "#C00", "#AA0", "#008", "#0B0", "#B0B", "#600", "#0BB", "#FFF" ];
+
+		var newLine = "<tr " + backcolor + "><td>" +
+			driver.number + "</td><td>" +
+			driver.name + "</td><td>" +
+			driver.racePosition + "</td><td>" +
 			driver.lastlap + "</td><td>" +
-			(driver.lastPitstop !== undefined ? (lastTimingData.currentLap - 1 - driver.laps_behind - driver.lastPitstop) : "") +
-			"</td><td>" + (lastTimingData.currentLap > 0 ? (lastTimingData.currentLap - 1 - driver.laps_behind) : 0) + "</td><td>" +
+			(driver.lastPitstop !== undefined ? (lastTimingData.currentLap - 1 - driver.laps_behind - driver.lastPitstop) : "") + "</td><td>" +
+			(lastTimingData.currentLap > 0 ? (lastTimingData.currentLap - 1 - driver.laps_behind) : 0) + "</td><td>" +
 			(driver.gap !== undefined ? driver.gap : "") + "</td><td>" +
-			(driver.behind !== undefined ? driver.behind : "") + "</td><td>" + driver.status + "</td></tr>";
+			(driver.behind !== undefined ? driver.behind : "") + "</td>" +
+			(driver.battle ? "<td style='background-color : " + battleColours[driver.battle] + "'>" : "<td>") + driver.battle + "</td><td>" +
+			driver.sector1 + "</td><td>" +
+			driver.sector2 + "</td><td>" +
+			driver.sector3 + "</td><td>" +
+			driver.status + "</td></tr>";
 		timingTableBody.append(newLine);
 	}
 }
