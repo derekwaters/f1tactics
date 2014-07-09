@@ -102,6 +102,7 @@
 					if (strlen($driverId) > 0)
 					{
 						$driver = $this->raceState->driverInfo->$driverId;
+						$driver->racePosition = $row;
 
 						switch ($event['column'])
 						{
@@ -144,6 +145,7 @@
 								else if ($event['value'] == 'OUT')
 								{
 									$driver->status = 'OUT';
+									$driver->lastPitstop = ($this->raceState->currentLap - $driver->laps_behind - 1);
 								}
 								else
 								{
