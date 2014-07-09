@@ -6,9 +6,16 @@
 
 	class LoadTimingData
 	{
-		public $mapRowToDriverId = array();
-		public $driverInfo = array();
-		public $currentLap = 0;
+		public $raceState;
+
+		public function __construct ()
+		{
+			$this->raceState = new stdClass();
+			$this->raceState->mapRowToDriverId = new stdClass();
+			$this->raceState->driverInfo = new stdClass();
+			$this->raceState->currentLap = 0;
+			$this->raceState->timestamp = null;
+		}
 
 		public function loadDataFrom ($filename)
 		{
@@ -65,15 +72,15 @@
 				$startSessionTransId = $row['messagecount'];
 				break;
 			}
-			$query = $theDatabase->query("SELECT * FROM trans WHERE identifier = '101' AND messagecount <= '" . $startSessionTransId . "'");
-			return $this->applyTimingData($query);
+			$query = $theDatabase->query("SELECT * FROM trans WHERE identifier = '101' AND messagecount <= '" . $startSessionTransId . "' ORDER BY messagecount ASC");
+			$this->applyTimingData($query);
 		}
 
 		public function processTimingData ($fromTime, $toTime)
 		{
 			global $theDatabase;
 
-			$query = $theDatabase->query("SELECT * FROM trans WHERE identifier = '101' AND timestamp >= '" . $fromTime . "' AND timestamp <= '" . $toTime . "'");
+			$query = $theDatabase->query("SELECT * FROM trans WHERE identifier = '101' AND timestamp >= '" . $fromTime . "' AND timestamp <= '" . $toTime . "' ORDER BY messagecount ASC");
 			$this->applyTimingData($query);
 		}
 
@@ -82,79 +89,83 @@
 			global $theDatabase;
 
 			$count = 0;
-			$lastTimestamp = null;
 
 			foreach ($query as $event)
 			{
 				$count++;
-				$lastTimestamp = $event['timestamp'];
+				$this->raceState->timestamp = $event['timestamp'];
 
-				if (isset($this->mapRowToDriverId[$event['row']]))
+				$row = $event['row'];
+				if (isset($this->raceState->mapRowToDriverId->$row))
 				{
-					$driverId = $this->mapRowToDriverId[$event['row']];
+					$driverId = $this->raceState->mapRowToDriverId->$row;
 					if (strlen($driverId) > 0)
 					{
+						$driver = $this->raceState->driverInfo->$driverId;
+
 						switch ($event['column'])
 						{
 							case '3':
-								$this->driverInfo[$driverId]['name'] = $event['value'];
+								$driver->name = $event['value'];
 								break;
 							case '4':
 								if ($event['row'] == '1')
 								{
 									// text should be lap
-									$this->driverInfo[$driverId]['behind'] = '0.0';
+									$driver->behind = '0.0';
 								}
 								else
 								{
 									if (strlen($event['value']) > 1 && $event['value'][strlen($event['value']) - 1] == 'L')
 									{
-										$this->driverInfo[$driverId]['laps_behind'] = substr($event['value'], 0, strlen($event['value']) - 1);
+										$driver->laps_behind = substr($event['value'], 0, strlen($event['value']) - 1);
 									}
-									$this->driverInfo[$driverId]['behind'] = $event['value'];
+									$driver->behind = $event['value'];
 								}
 							case '5':
 								if ($event['row'] == '1')
 								{
-									$this->currentLap = $event['value'];
+									$this->raceState->currentLap = $event['value'];
 
 									// echo "CURRENT LAP is " . $this->currentLap . "\n";
 									// text is the lap number
-									$this->driverInfp[$driverId]['gap'] = '0.0';
+									$driver->gap = '0.0';
 								}
 								else
 								{
-									$this->driverInfo[$driverId]['gap'] = $event['value'];
+									$driver->gap = $event['value'];
 								}
 								break;
 							case '6':
 								if ($event['value'] == 'IN PIT')
 								{
-									$this->driverInfo[$driverId]['status'] = 'IN PIT';
+									$driver->status = 'IN PIT';
 								}
 								else if ($event['value'] == 'OUT')
 								{
-									$this->driverInfo[$driverId]['status'] = 'OUT';
+									$driver->status = 'OUT';
 								}
 								else
 								{
-									$this->driverInfo[$driverId]['status'] = 'RACING';
-									$this->driverInfo[$driverId]['lastlap'] = $event['value'];
+									$driver->status = 'RACING';
+									$driver->lastlap = $event['value'];
 								}
 								break;
 							case '7':
-								$this->driverInfo[$driverId]['sector1'] = $event['value'];
+								$driver->sector1 = $event['value'];
 								break;
 							case '9':
-								$this->driverInfo[$driverId]['sector2'] = $event['value'];
+								$driver->sector2 = $event['value'];
 								break;
 							case '11':
-								$this->driverInfo[$driverId]['sector3'] = $event['value'];
+								$driver->sector3 = $event['value'];
 								break;
 							case '13':
-								$this->driverInfo[$driverId]['pitstops'] = $event['value'];
+								$driver->pitstops = $event['value'];
 								break;
 						}
+
+						$this->raceState->driverInfo->$driverId = $driver;
 					}
 				}
 				else if ($event['column'] == '2')
@@ -162,17 +173,16 @@
 					$driverId = $event['value'];
 					if (strlen($driverId) > 0)
 					{
-						$this->mapRowToDriverId[$event['row']] = $driverId;
-						$this->driverInfo[$driverId] = array();
-						$this->driverInfo[$driverId]['number'] = $driverId;
-						$this->driverInfo[$driverId]['laps_behind'] = 0;
+						$row = $event['row'];
+						$this->raceState->mapRowToDriverId->$row = $driverId;
+						$this->raceState->driverInfo->$driverId = new stdClass();
+						$this->raceState->driverInfo->$driverId->number = $driverId;
+						$this->raceState->driverInfo->$driverId->laps_behind = 0;
 					}
 				}
 			}
 
 			// echo "Got " . $count . " items\n";
-
-			return $lastTimestamp;
 		}
 
 		public function dumpDriverInfo ()
@@ -182,7 +192,7 @@
 			printf("----|--------------------------------|----------|-----|------------|\n");
 			foreach ($this->driverInfo as $driver)
 			{
-				printf("%3s | %30s | %8s | %3s | %10s |\n", $driver['number'], $driver['name'], $driver['lastlap'], $this->currentLap - 1 - $driver['laps_behind'], $driver['behind']);
+				printf("%3s | %30s | %8s | %3s | %10s |\n", $driver->number, $driver->name, $driver->lastlap, $this->currentLap - 1 - $driver->laps_behind, $driver->behind);
 			}
 			printf("----|--------------------------------|----------|-----|------------|\n");
 		}
@@ -192,6 +202,8 @@
 	// $check->loadDataFrom('F1 Race.txt');
 	// $check->initialiseTimingData();
 	// $check->dumpDriverInfo();
+	// $blah = strtotime($timestamp);
+	// var_dump($blah);
 
 	// $check->processTimingData("14:38:25.000", "14:42:00.000");
 	// $check->dumpDriverInfo();
