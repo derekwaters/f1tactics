@@ -13,10 +13,11 @@
 
 		$timing->raceState = $currentState;
 		$startTime = strtotime($currentState->timestamp);
-		$endTime = $startTime + (1 * 60);	// Add one minute
+		$endTime = $startTime + (1 * 20);	// Add 20 seconds
 		$endTimeStamp = date("H:i:s.000", $endTime);
 		$timing->processTimingData($currentState->timestamp, $endTimeStamp);
 		$currentState = $timing->raceState;
+		$currentState->timestamp = $endTimeStamp;
 	}
 	else
 	{
