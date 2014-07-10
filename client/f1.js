@@ -64,12 +64,9 @@ function refreshTable ()
 	for (var i = 0; i < gapIndexes.length; i++)
 	{
 		var checkVal = parseFloat(gapIndexes[i].gap);
-		if (gapIndexes[i].gap.length > 0 && checkVal < 2.0)
+		if (gapIndexes[i].gap.length > 0 && checkVal < 2.0 && i > 0)
 		{
-			if (i > 0)
-			{
-				lastTimingData.driverInfo[gapIndexes[i - 1].driverNumber].battle = battleOffset;
-			}
+			lastTimingData.driverInfo[gapIndexes[i - 1].driverNumber].battle = battleOffset;
 			lastTimingData.driverInfo[gapIndexes[i].driverNumber].battle = battleOffset;
 			inBattle = true;
 		}
@@ -136,18 +133,18 @@ function refreshTable ()
 			backcolor = "style='background-color: #600'";
 		}
 
-		var battleColours = [ "#C00", "#AA0", "#008", "#0B0", "#B0B", "#600", "#0BB", "#FFF" ];
+		var battleColours = [ "#C00", "#AA0", "#008", "#0B0", "#B0B", "#600", "#0BB", "#555", "#B50", "#040", "#C96" ];
 
-		var newLine = "<tr " + backcolor + "><td>" +
-			driver.number + "</td><td>" +
-			driver.name + "</td><td>" +
+		var newLine = "<tr " + backcolor + "><td class='position'>" +
 			driver.racePosition + "</td><td>" +
+			driver.number + "</td><td class='driverName'>" +
+			driver.name + "</td><td>" +
+			(lastTimingData.currentLap > 0 ? (lastTimingData.currentLap - 1 - driver.laps_behind) : 0) + "</td><td>" +
 			driver.lastlap + "</td><td>" +
 			(driver.lastPitstop !== undefined ? (lastTimingData.currentLap - 1 - driver.laps_behind - driver.lastPitstop) : "") + "</td><td>" +
-			(lastTimingData.currentLap > 0 ? (lastTimingData.currentLap - 1 - driver.laps_behind) : 0) + "</td><td>" +
 			(driver.gap !== undefined ? driver.gap : "") + "</td><td>" +
 			(driver.behind !== undefined ? driver.behind : "") + "</td>" +
-			(driver.battle ? "<td style='background-color : " + battleColours[driver.battle] + "'>" : "<td>") + driver.battle + "</td><td>" +
+			((driver.battle !== undefined && driver.battle !== null) ? ("<td style='background-color : " + battleColours[driver.battle] + "'>" + driver.battle) : "<td>") + "</td><td>" +
 			driver.sector1 + "</td><td>" +
 			driver.sector2 + "</td><td>" +
 			driver.sector3 + "</td><td>" +
@@ -175,7 +172,7 @@ function updateTable ()
 
 $(document).ready(function()
 {
-	getTiming = true;
+	getTiming = false;
 	initialiseTable();
 	$("#timingStatus").click(function() {
 		getTiming = !getTiming;

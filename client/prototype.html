@@ -11,14 +11,14 @@
 	<table id="timingTable">
 		<thead>
 			<tr>
-				<th>#</th>
+				<th>P</th>
+				<th>&nbsp;</th>
 				<th>Name</th>
-				<th>Pos</th>
+				<th>Laps</th>
 				<th>Last Lap</th>
 				<th>Last Pitstop</th>
-				<th>Laps</th>
 				<th>Gap</th>
-				<th>Behind Leader</th>
+				<th>Behind</th>
 				<th>Battle</th>
 				<th>Sector 1</th>
 				<th>Sector 2</th>
@@ -30,8 +30,9 @@
 		</tbody>
 	</table>
 
-	<div>Currently on lap: <span id="timingCurrentLap">...</span></div>
-	<div>Last Updated (race) Time: <span id="timingLastUpdate">...</span></div>
-	<button id="timingStatus">Stop Timing</button>
+	<div class="onLap">ON LAP: <span id="timingCurrentLap">...</span></div>
+	<div class="raceTime">RACE TIME: <span id="timingLastUpdate">...</span></div>
+
+	<button id="timingStatus">Start Timing</button>
 </body>
 </html>

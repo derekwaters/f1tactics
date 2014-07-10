@@ -3,7 +3,7 @@ body
 	background-color: Black;
 	color: White;
 	font-family: Arial;
-	font-size: 9px;
+	font-size: 12px;
 }
 
 #timingTable
@@ -12,17 +12,57 @@ body
 	margin-bottom: 20px;
 }
 
+#timingTable th
+{
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
 #timingTable td
 {
 	padding-left: 5px;
 	padding-right: 5px;
-	border-collapse:collapse;
+	padding-top: 1px;
+	padding-bottom: 1px;
 	font-family: Arial;
-	font-size: 9px;
+	font-size: 12px;
+	text-align: right;
 }
 
 #timingTable thead
 {
-	background-color: #444;
+	color: #CCC;
+	font-weight: normal;
 }
 
+#timingTable td.driverName
+{
+	text-align: left;
+}
+
+#timingTable td.position
+{
+	color: #0FF;
+}
+
+.onLap
+{
+	color: #0FF;
+	margin-bottom: 20px;
+}
+
+.onLap span
+{
+	color: #F0F;
+}
+
+.raceTime
+{
+	color: #0FF;
+	margin-bottom: 20px;
+}
+
+.raceTime span
+{
+	color: #F0F;
+}
