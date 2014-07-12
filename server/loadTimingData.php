@@ -107,7 +107,10 @@
 						switch ($event['column'])
 						{
 							case '3':
-								$driver->name = $event['value'];
+								if (!isset($driver->name))
+								{
+									$driver->name = $event['value'];
+								}
 								break;
 							case '4':
 								if ($event['row'] == '1')

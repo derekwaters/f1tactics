@@ -81,6 +81,46 @@ function refreshTable ()
 		}
 	}
 
+	var idMap = { 6 : 809, 44 : 828, 3 : 857, 14 : 30, 77 : 865, 1 : 822, 27 : 840, 22 : 6, 20 : 899, 19 : 18,
+		11 : 867, 7 : 12, 25 : 870, 8 : 838, 26 : 906, 17 : 850, 99 : 818, 9 : 862, 13 : 869, 21 : 854, 4 : 887, 10 : 837 };
+
+
+	$("#battleTable div").remove();
+	var battleTable = $("#battleTable");
+	var currentBattle = -1;
+	var addStuff = "";
+	for (var i = 0; i < gapIndexes.length; i++)
+	{
+		var driverInfo = lastTimingData.driverInfo[gapIndexes[i].driverNumber];
+
+		if (driverInfo.battle != null)
+		{
+			if (currentBattle != driverInfo.battle)
+			{
+				if (currentBattle != -1)
+				{
+					addStuff += "<div class='battleClear'/></div>";
+				}
+				// Add a new div
+				addStuff += "<div class='battleRow'><div class='battleBehind'>" + driverInfo.behind + "</div>";
+			}
+			else
+			{
+				addStuff += "<div class='battleGap'>" + driverInfo.gap + "</div>";
+			}
+			addStuff += "<div class='battleCell'><img src='http://www.formula1.com/photos/teams_and_drivers/driver_index/portrait/portrait_" + idMap[driverInfo.number] + ".jpg'><br/>" + driverInfo.name + "</div>";
+
+			currentBattle = driverInfo.battle;
+		}
+	}
+	if (currentBattle != -1)
+	{
+		addStuff += "<div class='battleClear'/></div>";
+	}
+	battleTable.append(addStuff);
+
+
+
 	// Sort into "fastest last lap" order.
 	var indexes = [];
 	for (var key in lastTimingData.driverInfo)
@@ -107,6 +147,7 @@ function refreshTable ()
 				return 1;
 			}
 		});
+
 
 	// Refresh the data fields
 	$("#timingTable tbody tr").remove();
