@@ -219,16 +219,21 @@ $(document).ready(function()
 	{
 		$("#timingTable").show();
 		$("#battleTable").hide();
+		$(this).addClass("active");
+		$("#battleTab").removeClass("active");
 	});
 
 	$("#battleTab").click(function()
 	{
 		$("#timingTable").hide();
 		$("#battleTable").show();
+		$(this).addClass("active");
+		$("#timingTab").removeClass("active");
 	});
 
 
 	$("#battleTable").hide();
+	$("#timingTab").addClass("active");
 
 	initialiseTable();
 	$("#timingStatus").click(function() {
