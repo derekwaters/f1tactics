@@ -214,6 +214,22 @@ function updateTable ()
 $(document).ready(function()
 {
 	getTiming = false;
+
+	$("#timingTab").click(function()
+	{
+		$("#timingTable").show();
+		$("#battleTable").hide();
+	});
+
+	$("#battleTab").click(function()
+	{
+		$("#timingTable").hide();
+		$("#battleTable").show();
+	});
+
+
+	$("#battleTable").hide();
+
 	initialiseTable();
 	$("#timingStatus").click(function() {
 		getTiming = !getTiming;
